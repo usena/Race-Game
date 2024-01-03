@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centered Joystick Controller</title>
+    <style>
+        #joystick-container {
+            position: relative;
+            width: 100px;
+            height: 300px;
+            border: 2px solid #3498db;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        #joystick {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: #3498db;
+            cursor: pointer;
+            touch-action: none;
+            transition: top 0.1s ease-out; /* Smooth transition */
+        }
+    </style>
+</head>
+<body>
+    <h1>Centered Joystick Controller</h1>
+    <div id="joystick-container">
+        <div id="joystick"></div>
+    </div>
+
+    <script>
+        const joystickContainer = document.getElementById('joystick-container');
+        const joystick = document.getElementById('joystick');
+
+        const socket = new WebSocket('ws://45.64.100.42:5050');  // Replace with your server's public IP address
+
+        // Calculate the initial position to center the joystick
+        const initialY = (joystickContainer.clientHeight - joystick.clientHeight) / 2;
+        moveJoystick(initialY);
+
+        joystick.addEventListener('mousedown', handleMouseDown);
+        document.addEventListener('mouseup', handleMouseUp);
+        document.addEventListener('mousemove', handleMouseMove);
+
+        function handleMouseDown(event) {
+            joystick.dragging = true;
+            joystick.originY = event.clientY;
+            joystick.lastY = joystick.originY;
+        }
+
+        function handleMouseUp() {
+            joystick.dragging = false;
+            resetJoystickPosition();
+        }
+
+        function handleMouseMove(event) {
+            if (joystick.dragging) {
+                const deltaY = event.clientY - joystick.originY;
+                const sensitivity = 0.1;  // Adjust sensitivity for smoother movement
+                const newY = joystick.offsetTop + deltaY * sensitivity;
+
+                const constrainedY = clamp(newY, 0, joystickContainer.clientHeight - joystick.clientHeight);
+
+                moveJoystick(constrainedY);
+
+                // Send joystick position to the server
+                socket.send(JSON.stringify({ y: constrainedY }));
+            }
+        }
+
+        function moveJoystick(y) {
+            joystick.style.top = `${y}px`;
+            joystick.lastY = y;
+        }
+
+        function resetJoystickPosition() {
+            joystick.dragging = false;
+            moveJoystick(initialY);
+        }
+
+        // Helper function to clamp a value between a minimum and maximum
+        function clamp(value, min, max) {
+            return Math.min(Math.max(value, min), max);
+        }
+    </script>
+</body>
+</html>
