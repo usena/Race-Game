@@ -3,18 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centered Joystick Controller</title>
+    <title>Race Car Controller</title>
     <style>
-        #joystick-container {
+        #pedal-container {
             position: relative;
             width: 100px;
             height: 300px;
             border: 2px solid #3498db;
+            border-radius: 50px; /* Set border-radius to half of the container's width for round edges */
             overflow: hidden;
             touch-action: none;
         }
 
-        #joystick {
+        #pedal {
             position: absolute;
             width: 100px;
             height: 100px;
@@ -27,59 +28,73 @@
     </style>
 </head>
 <body>
-    <h1>Centered Joystick Controller</h1>
-    <div id="joystick-container">
-        <div id="joystick"></div>
+    <div id="pedal-container">
+        <div id="pedal"></div>
     </div>
 
     <script>
-        const joystickContainer = document.getElementById('joystick-container');
-        const joystick = document.getElementById('joystick');
+        const pedalContainer = document.getElementById('pedal-container');
+        const pedal = document.getElementById('pedal');
 
         const socket = new WebSocket('ws://45.64.100.42:5050');  // Replace with your server's public IP address
 
-        // Calculate the initial position to center the joystick
-        const initialY = (joystickContainer.clientHeight - joystick.clientHeight) / 2;
-        moveJoystick(initialY);
+        // Calculate the initial position to start the pedal at the bottom
+        const initialY = pedalContainer.clientHeight - pedal.clientHeight;
+        resetPedalPosition();
 
-        joystick.addEventListener('mousedown', handleMouseDown);
-        document.addEventListener('mouseup', handleMouseUp);
-        document.addEventListener('mousemove', handleMouseMove);
+        pedal.addEventListener('touchstart', handleTouchStart);
 
-        function handleMouseDown(event) {
-            joystick.dragging = true;
-            joystick.originY = event.clientY;
-            joystick.lastY = joystick.originY;
+        document.addEventListener('touchend', handleTouchEnd);
+
+        document.addEventListener('touchmove', handleTouchMove);
+
+        function handleTouchStart(event) {
+            startDrag(event.touches[0].clientY);
+            event.preventDefault();
         }
 
-        function handleMouseUp() {
-            joystick.dragging = false;
-            resetJoystickPosition();
+        function handleTouchEnd() {
+            endDrag();
         }
 
-        function handleMouseMove(event) {
-            if (joystick.dragging) {
-                const deltaY = event.clientY - joystick.originY;
-                const sensitivity = 0.1;  // Adjust sensitivity for smoother movement
-                const newY = joystick.offsetTop + deltaY * sensitivity;
-
-                const constrainedY = clamp(newY, 0, joystickContainer.clientHeight - joystick.clientHeight);
-
-                moveJoystick(constrainedY);
-
-                // Send joystick position to the server
-                socket.send(JSON.stringify({ y: constrainedY }));
+        function handleTouchMove(event) {
+            if (pedal.dragging) {
+                movePedal(event.touches[0].clientY);
+                sendPedalPosition();
+                event.preventDefault();
             }
         }
 
-        function moveJoystick(y) {
-            joystick.style.top = `${y}px`;
-            joystick.lastY = y;
+        function startDrag(clientY) {
+            pedal.dragging = true;
+            pedal.originY = clientY;
+            pedal.lastY = pedal.originY;
         }
 
-        function resetJoystickPosition() {
-            joystick.dragging = false;
-            moveJoystick(initialY);
+        function endDrag() {
+            pedal.dragging = false;
+            resetPedalPosition();
+        }
+
+        function movePedal(clientY) {
+            const deltaY = clientY - pedal.originY;
+            const sensitivity = 0.1;  // Adjust sensitivity for smoother movement
+            const newY = pedal.offsetTop + deltaY * sensitivity;
+            const constrainedY = clamp(newY, 0, pedalContainer.clientHeight - pedal.clientHeight);
+            movePedalElement(constrainedY);
+        }
+
+        function movePedalElement(y) {
+            pedal.style.top = `${y}px`;
+            pedal.lastY = y;
+        }
+
+        function resetPedalPosition() {
+            movePedalElement(initialY);
+        }
+
+        function sendPedalPosition() {
+            socket.send(JSON.stringify({ y: pedal.lastY }));
         }
 
         // Helper function to clamp a value between a minimum and maximum
