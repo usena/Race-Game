@@ -4,103 +4,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Race Car Controller</title>
-    <style>
-        #pedal-container {
-            position: relative;
-            width: 100px;
-            height: 300px;
-            border: 2px solid #3498db;
-            border-radius: 50px; /* Set border-radius to half of the container's width for round edges */
-            overflow: hidden;
-            touch-action: none;
-        }
-
-        #pedal {
-            position: absolute;
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background-color: #3498db;
-            cursor: pointer;
-            touch-action: none;
-            transition: top 0.1s ease-out; /* Smooth transition */
-        }
-    </style>
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<style>
+    body{
+        background-color: black;
+        color:white;
+    }
+    #ball{
+        position:absolute;
+        border-radius: 100%;
+        outline: #FFF dashed 20px;
+        background: radial-gradient(#fff7a7,#ffd100);
+        width: 150px;
+        height: 150px;
+        left: 45%;
+        top: 35%;
+        transition:left 0.2s linear, top 0.2s linear,transform 0.2s linear;
+    }
+</style>
+<script>
+    let sensor=new Gyroscope();
+    let z, report;
+    sensor.start();
+    sensor.onreading=()=>{
+        report+="Z-axis Angle Velocity:"+sensor.z+"<br>";
+        report += "Ball current Rotation="+z+"deg<br>";
+        report_box.innerHTML=report;
+        z=sensor.z*-33;
+        ball.style.transform="rotate("+z+"deg)";
+    };
+    sensor.onerror=errorHandler;
+    function errorHandler(event){
+        console.log(event.error.name,event.error.message);
+    };
+</script>
 </head>
 <body>
-    <div id="pedal-container">
-        <div id="pedal"></div>
-    </div>
-
-    <script>
-        const pedalContainer = document.getElementById('pedal-container');
-        const pedal = document.getElementById('pedal');
-
-        const socket = new WebSocket('ws://45.64.100.42:5050');  // Replace with your server's public IP address
-
-        // Calculate the initial position to start the pedal at the bottom
-        const initialY = pedalContainer.clientHeight - pedal.clientHeight;
-        resetPedalPosition();
-
-        pedal.addEventListener('touchstart', handleTouchStart);
-
-        document.addEventListener('touchend', handleTouchEnd);
-
-        document.addEventListener('touchmove', handleTouchMove);
-
-        function handleTouchStart(event) {
-            startDrag(event.touches[0].clientY);
-            event.preventDefault();
-        }
-
-        function handleTouchEnd() {
-            endDrag();
-        }
-
-        function handleTouchMove(event) {
-            if (pedal.dragging) {
-                movePedal(event.touches[0].clientY);
-                sendPedalPosition();
-                event.preventDefault();
-            }
-        }
-
-        function startDrag(clientY) {
-            pedal.dragging = true;
-            pedal.originY = clientY;
-            pedal.lastY = pedal.originY;
-        }
-
-        function endDrag() {
-            pedal.dragging = false;
-            resetPedalPosition();
-        }
-
-        function movePedal(clientY) {
-            const deltaY = clientY - pedal.originY;
-            const sensitivity = 0.1;  // Adjust sensitivity for smoother movement
-            const newY = pedal.offsetTop + deltaY * sensitivity;
-            const constrainedY = clamp(newY, 0, pedalContainer.clientHeight - pedal.clientHeight);
-            movePedalElement(constrainedY);
-        }
-
-        function movePedalElement(y) {
-            pedal.style.top = `${y}px`;
-            pedal.lastY = y;
-        }
-
-        function resetPedalPosition() {
-            movePedalElement(initialY);
-        }
-
-        function sendPedalPosition() {
-            socket.send(JSON.stringify({ y: pedal.lastY }));
-        }
-
-        // Helper function to clamp a value between a minimum and maximum
-        function clamp(value, min, max) {
-            return Math.min(Math.max(value, min), max);
-        }
-    </script>
+    <div id="report_box"></div>
+    <div id="ball"></div>
 </body>
-</html>
