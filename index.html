@@ -1,24 +1,33 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>
-        Mousebot
-    </title>
-    <meta name="viewport" content="user-scalable=no">
-</head>
-<body  style="position: fixed; font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif ;
-color:rgb(128, 128, 128);
-font-size: xx-large;">
-    <h1 style="text-align:center">
-        MOUSEBOT </h1>
-    <p style="text-align: center;">
-        X: <span id="x_coordinate"> </span>
-        Y: <span id="y_coordinate"> </span>
-        Speed: <span id="speed"> </span> %
-        Angle: <span id="angle"> </span>
-    </p>
-    <canvas id="canvas" name="game"></canvas>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Race Car Controller</title>
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <style>
+        .button{
+            background-color: rgb(255, 29, 29);
+            border: 10px solid rgb(29, 29, 29);
+            border-radius: 50%;
+            height: 150px;
+            width: 150px;
+        }
+    </style>
+    <script>
+        $(document).ready(function(){
+            var clicked=false;
+            $(".button").on("touchstart",function(){
+                clicked=true;
+                $(this).css("background-color","rgb(255, 82, 82)");
+            })
+            $(".button").on("touchend",function(){
+                clicked=false;
+                $(this).css("background-color","rgb(255, 29, 29)");
+            })
+        });
+    </script>
     <script>
         var canvas, ctx;
 
@@ -45,33 +54,35 @@ font-size: xx-large;">
         });
 
 
-        var width, height, radius, x_orig, y_orig;
+        var width, height, radius, x_orig, y_orig, x_cord, y_cord;
         function resize() {
             width = window.innerWidth;
-            radius = 200;
-            height = radius * 6.5;
+            radius = 70;
+            height = radius * 4.5;
             ctx.canvas.width = width;
             ctx.canvas.height = height;
+            x_cord = width - radius - 100
+            y_cord = height - radius - 80
             background();
-            joystick(width / 2, height / 3);
+            joystick(x_cord, y_cord);
         }
 
         function background() {
-            x_orig = width / 2;
-            y_orig = height / 3;
+            x_orig = x_cord;
+            y_orig = y_cord;
 
             ctx.beginPath();
             ctx.arc(x_orig, y_orig, radius + 20, 0, Math.PI * 2, true);
-            ctx.fillStyle = '#ECE5E5';
+            ctx.fillStyle = '#808588';
             ctx.fill();
         }
 
         function joystick(width, height) {
             ctx.beginPath();
             ctx.arc(width, height, radius, 0, Math.PI * 2, true);
-            ctx.fillStyle = '#F08080';
+            ctx.fillStyle = '#0062FF';
             ctx.fill();
-            ctx.strokeStyle = '#F6ABAB';
+            ctx.strokeStyle = '#222021';
             ctx.lineWidth = 8;
             ctx.stroke();
         }
@@ -109,7 +120,7 @@ font-size: xx-large;">
             paint = false;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             background();
-            joystick(width / 2, height / 3);
+            joystick(x_cord, y_cord);
             document.getElementById("x_coordinate").innerText = 0;
             document.getElementById("y_coordinate").innerText = 0;
             document.getElementById("speed").innerText = 0;
@@ -162,5 +173,23 @@ font-size: xx-large;">
             }
         } 
     </script>
+</head>
+<body>
+    <p style="text-align: center;">
+        X: <span id="x_coordinate"> </span>
+        Y: <span id="y_coordinate"> </span>
+        Speed: <span id="speed"> </span> %
+        Angle: <span id="angle"> </span>
+    </p>
+    <div class="w3-cell-row">
+        <div class="w3-container w3-cell w3-display-left" style="margin-top:10px;margin-left:100px;">
+            <div class="button-container">
+                <button class="button"></button>
+            </div>
+        </div>
+        <div class="joystick">
+            <canvas id="canvas" name="game"></canvas>
+        </div>
+    </div>
 </body>
-</html><br>
+</html>
