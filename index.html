@@ -30,16 +30,32 @@
 
     <script>
         let sensor = new Gyroscope();
-        let z = 0; // Initialize z to 0
-        let report = ""; // Initialize report to an empty string
+        let z = 0;
+        let report = "";
+        let readings = []; // Array to store recent readings
+        let numReadings = 10; // Adjust the number of readings for averaging
         sensor.start();
 
         sensor.onreading = () => {
             report = "Z-axis Angle Velocity: " + sensor.z + "<br>";
             report += "Ball current Rotation = " + z + "deg<br>";
             report_box.innerHTML = report;
-            z += sensor.z * -33;
-            ball.style.transform = "rotate(" + z + "deg)";
+
+            // Add the new reading to the array
+            readings.push(sensor.z);
+
+            // Ensure the array doesn't exceed the specified number of readings
+            if (readings.length > numReadings) {
+                readings.shift(); // Remove the oldest reading
+            }
+
+            // Calculate the average of the readings
+            let averageZ = readings.reduce((sum, reading) => sum + reading, 0) / readings.length;
+
+            // Apply damping/smoothing
+            z = 0.1 * averageZ + 0.9 * z;
+
+            ball.style.transform = "rotate(" + z * -33 + "deg)";
         };
 
         sensor.onerror = errorHandler;
