@@ -6,6 +6,7 @@ from car import *
 from move_keys import *
 from track_selection import *
 from car_selection import *
+import time
 
 # Constants
 PHASE_TRACK_SELECTION = 0
@@ -64,7 +65,7 @@ def car_selection_phase():
 def race_phase(track, track_x, track_y, selected_car):
     pygame.display.set_caption("Racer")
     game_asset = LoadAsset(track_x, track_y, "D:\CS_Major\Python\Racer\image/grass.webp", "D:\CS_Major\Python\Racer\image/finish.png")
-
+    lap_start_time = time.time()
     # Set up game assets and car based on the selected track
     if track == "track_1":
         game_asset.scale_grass(2)
@@ -98,6 +99,7 @@ def race_phase(track, track_x, track_y, selected_car):
                 run = False
         move_player(game_car)
         draw(game_asset.screen, game_asset.asset, game_car)
+        font = pygame.font.Font(None,36)
         pygame.display.flip()
         finish_mask = pygame.mask.from_surface(game_asset.finish)
         track_mask = pygame.mask.from_surface(game_asset.track_border)
@@ -106,6 +108,12 @@ def race_phase(track, track_x, track_y, selected_car):
         finish_poi_collide = game_car.collide(finish_mask, *game_asset.finish_position)
         if finish_poi_collide != None:
             if finish_poi_collide[0] == 0:
+                lap_time = time.time() - lap_start_time
+                time_display = font.render(f'Lap Time: {lap_time:.2f} seconds',True,(255,255,255))
+                game_asset.screen.blit(time_display,(10,10))
+                print(f'Lap time: {lap_time: .2f} seconds')
+                pygame.display.flip()
+                time.sleep(3)
                 return True  # Restart race
             else:
                 game_car.bounce()
